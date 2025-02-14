@@ -2,10 +2,11 @@ import express from 'express';
 import { 
     getPost, getSinglePost, createPost, updatePost, deletePost,
 } from '../controller/postController.js';
+
 const router = express.Router();
 
 // get all post with or without limit 
-router.get('/', getPost )
+router.get('/', getPost );
 
 // get single post with id
 router.get('/:id', getSinglePost);
@@ -14,7 +15,7 @@ router.get('/:id', getSinglePost);
 router.post('/', createPost);
 
 // Update posts
-router.put('/:id', updatePost)
+router.put('/:id', updatePost);
 
 // Delete Post
 router.delete('/:id', deletePost)

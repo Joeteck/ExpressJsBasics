@@ -80,4 +80,4 @@ const deletePost =(req,res, next) => {
 };
 
 
-// export default (getPost, getSinglePost, createPost, updatePost, deletePost);
+export { getPost, getSinglePost, createPost, updatePost, deletePost };
