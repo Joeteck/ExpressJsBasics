@@ -3,13 +3,197 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+    <title>API Test</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: Arial, sans-serif;
+        }
+        body {
+            background: #f4f4f4;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+        .container {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            width: 90%;
+            max-width: 500px;
+            text-align: center;
+        }
+        h1 {
+            margin-bottom: 20px;
+            color: #333;
+        }
+        button {
+            padding: 10px 15px;
+            margin: 5px;
+            border: none;
+            border-radius: 5px;
+            background: #007bff;
+            color: white;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        button:hover {
+            background: #0056b3;
+        }
+        pre {
+            background: #222;
+            color: #fff;
+            padding: 10px;
+            border-radius: 5px;
+            margin-top: 20px;
+            text-align: left;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+        /* Modal Styles */
+        .overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 999;
+        }
+        .modal {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            width: 90%;
+            max-width: 400px;
+            z-index: 1000;
+            text-align: center;
+        }
+        .modal input {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+    </style>
 </head>
 <body>
-    <section>
-        <h1>
-            Welcome to Home Page.
-        </h1>
-    </section>
+    <div class="container">
+        <h1>Express API Testing</h1>
+        <button onclick="getAllPosts()">Get All Posts</button>
+        <button onclick="getPostById()">Get Post by ID</button>
+        <button onclick="createPost()">Create Post</button>
+        <button onclick="updatePost()">Update Post</button>
+        <button onclick="deletePost()">Delete Post</button>
+        <pre id="response"></pre>
+    </div>
+
+    <div class="overlay" id="overlay"></div>
+    <div class="modal" id="modal">
+        <input type="text" id="postIdInput" placeholder="Enter Post ID">
+        <input type="text" id="modalInput" placeholder="Enter Value">
+        <button onclick="handleModalSubmit()">Submit</button>
+        <button onclick="closeModal()">Cancel</button>
+    </div>
+
+    <script>
+        const baseUrl = "http://localhost:8080/api/post";
+        let currentAction = null;
+        let modalInput = document.getElementById("modalInput");
+        let postIdInput = document.getElementById("postIdInput");
+        let modal = document.getElementById("modal");
+        let overlay = document.getElementById("overlay");
+
+        function updateResponse(data) {
+            document.getElementById("response").innerText = JSON.stringify(data, null, 2);
+        }
+
+        function openModal(action) {
+            currentAction = action;
+            modal.style.display = "block";
+            overlay.style.display = "block";
+            modalInput.value = "";
+            postIdInput.value = "";
+            postIdInput.style.display = (action === "updatePost" || action === "deletePost") ? "block" : "none";
+        }
+
+        function closeModal() {
+            modal.style.display = "none";
+            overlay.style.display = "none";
+        }
+
+        function handleModalSubmit() {
+            const inputValue = modalInput.value.trim();
+            const postId = postIdInput.value.trim();
+            
+            if ((currentAction === "updatePost" || currentAction === "deletePost") && !postId) {
+                alert("Please enter a Post ID.");
+                return;
+            }
+            if ((currentAction === "createPost" || currentAction === "updatePost") && !inputValue) {
+                alert("Please enter a value.");
+                return;
+            }
+
+            closeModal();
+
+            let url = `${baseUrl}/${postId}`;
+            let options = {};
+            
+            switch (currentAction) {
+                case "getPostById":
+                    url = `${baseUrl}/${inputValue}`;
+                    options = { method: "GET" };
+                    break;
+                case "createPost":
+                    url = baseUrl;
+                    options = {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({ title: inputValue })
+                    };
+                    break;
+                case "updatePost":
+                    options = {
+                        method: "PUT",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({ title: inputValue })
+                    };
+                    break;
+                case "deletePost":
+                    options = { method: "DELETE" };
+                    break;
+            }
+
+            fetch(url, options)
+                .then(res => res.json())
+                .then(data => updateResponse(data))
+                .catch(err => updateResponse({ error: err.message }));
+        }
+
+        function getAllPosts() {
+            fetch(baseUrl)
+                .then(res => res.json())
+                .then(data => updateResponse(data))
+                .catch(err => updateResponse({ error: err.message }));
+        }
+
+        function getPostById() { openModal("getPostById"); }
+        function createPost() { openModal("createPost"); }
+        function updatePost() { openModal("updatePost"); }
+        function deletePost() { openModal("deletePost"); }
+    </script>
 </body>
 </html>
